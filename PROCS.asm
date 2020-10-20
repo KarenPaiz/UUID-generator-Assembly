@@ -12,8 +12,10 @@ programa:
 	mov ax, @data
 	mov ds, ax
 
-
-
+	XOR DI, DI
+	XOR SI, SI
+	LEA SI, CADRESUL
+	LEA DI, CADENA1
 CALL PROCESUMA
 
 mov dx, offset CADRESUL
@@ -23,12 +25,8 @@ int 21h
 JMP FIN
 
 PROCESUMA proc near
-	XOR DI, DI
-	XOR SI, SI
 	MOV A1, 0
 	MOV A2, 0
-	LEA SI, CADRESUL
-	LEA DI, CADENA1
 	MOV A1, SI
 	MOV A2, DI
 	DEC A1
