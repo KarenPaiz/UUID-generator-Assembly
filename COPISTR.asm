@@ -12,6 +12,7 @@ programa:
 	mov ax, @data
 	mov ds, ax
 	
+
 	mov dx, offset texto2
 	mov ah, 09h
 	int 21h
