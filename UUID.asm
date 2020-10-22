@@ -1,37 +1,46 @@
 .model small
 .data
-	textoMen DB 'Ingrese la opción del menu deseada$',0Ah
-	OpcionesMen DB '1. Generar un UUID $',0Ah, '2. Generar varios UUID $',0Ah,'3. Validar un UUID $',0Ah,'4. Salir del programa$',0Ah
-	ErrorMensaje DB 'Opción incorrecta del menú, elija de nuevo $',0Ah
+	textoMen DB 'Ingrese la opci',162,'n del menu deseada',0Ah, '$'
+	OpcionesMen DB '1. Generar un UUID ',0Ah, '2. Generar varios UUID ',0Ah,'3. Validar un UUID ',0Ah,'4. Salir del programa',0Ah,0Ah, '$'
+	ErrorMensaje DB 'Opci',162,'n incorrecta del men',163,', elija de nuevo ',0Ah, 0Ah,'$'
 	FinMensaje DB 'Gracias por usar.$'
-	CantUUID DW ?
-	AÑO DW ?
+	Variosmen DB 'Ingrese la cantidad de UUID que desea: $'
+	Entermsg DB 'Presione enter. $'
+	Errornum DB 0Ah,'Lo que ha ingresado no es un numero mayor a 0 o menor a 10. Regresara al menu ',0Ah,0Ah,'$'
+	CantUUID Db ?
+	ANIO DW ?
 	MES DB ?
 	DIA DB ?
-	HORA DW ?
-	MIN DW ?
-	SEGS DW ?
-	CENTISEG DW ?
+	HORA DB ?
+	MIN DB ?
+	SEGS DB ?
+	CENTISEG DB ?
 	DEFAULT DB '59918400000$'
-	CONTDIAS DB 0
+	CONTDIAS DW 0
 	CONTDIASSTR DB 80 DUP ('$')
-	CADRESUL DB 250 DUP ('0'), '$'
+	CADRESUL DB '0$', 230 DUP ('$')
 	CENSEGXD DB 0h
 	CENSEGXDstr DB 80 DUP ('$')
 	SEGCONstr DB 80 DUP ('$')
-	SEGCON DB 0h
+	SEGCON DW 0h
 	B DB '2531011$'
-	q	dw 0
-	r	dw 0
-	ax_	dw	0
-	bx_	dw	0
-	cx_	dw	0
-	dx_	dw	0
-	MUL1 DB 80 DUP ('$')
+	MUL1 DB 250 DUP ('$')
 	MUL2 DB '864$'
 	numMod DW 0h
 	contMod DB 4
 	contImpri db 0h
+	R1 DW ?
+	R2 DB 0H
+	CAD1 DB 250 DUP ('$')
+	CAD2 DB 250 DUP ('$')
+	CAD3 DB 250 DUP ('$')
+	ULTCONT DW 0h
+	CONT DB 0h
+	CONT2 DB 0h
+	A1 DW ?
+	A2 DW ?
+	AUX1 DW ?
+	modulito DW 0
 .stack
 .code
 .386
@@ -41,7 +50,7 @@ programa:
 	mov ds, ax
 ;-------------------------------------------MENU-------------------------------------
 MENU:
-;imprimir
+	;imprimir
 	mov dx, offset textoMen
 	mov ah, 09h
 	int 21h
@@ -49,9 +58,16 @@ MENU:
 	mov dx, offset OpcionesMen
 	mov ah, 09h
 	int 21h
+	
 ;leer opción
 	mov ah, 01h    
 	int 21h	
+	MOV BL, AL 
+	;salto de linea
+	MOV DL, 0Ah
+	MOV AH, 02h
+	int 21h
+	MOV AL , BL
 ;opcion 1
 	MOV Dl, 49
     CMP Al, Dl
@@ -81,13 +97,46 @@ OPCION1:
 	JMP MENU
 ;------------------------------------------OPCION2-----------------------------------
 OPCION2:
-	MOV CantUUID, ?
+	MOV CantUUID, 0h
+	mov dx, offset Variosmen
+	mov ah, 09h
+	int 21h
+	
+	mov ah, 01h    
+	int 21h	
+	MOV CantUUID, AL 
+	SUB CantUUID, 30h
+	CMP CantUUID, 1
+	JB OPFAIL
+	
+	CMP CantUUID, 9
+	JA OPFAIL
+	;salto de linea
+	MOV DL, 0Ah
+	MOV AH, 02h
+	int 21h
+	
+
 OP21:
 	CALL GENUUID
+	mov dx, offset Entermsg
+	mov ah, 09h
+	int 21h
+	mov ah, 01h    
+	int 21h	
+	;salto de linea
+	MOV DL, 0Ah
+	MOV AH, 02h
+	int 21h
 	DEC CantUUID
 	CMP CantUUID , 0h
-;opcion  terminada	
+	JA OP21
 	JMP MENU
+OPFAIL:
+	mov dx, offset Errornum
+	mov ah, 09h
+	int 21h
+JMP MENU	
 ;------------------------------------------OPCION3-----------------------------------
 OPCION3:
 ;PENDIENTE
@@ -99,26 +148,20 @@ OPCION4:
 	int 21h
 	jmp FIN
 
+
+
+
+
+
+
+
+
+
 FIN:	
 	;finalizar programa
 	mov ah, 4ch
 	int 21h
-;-------------------------------------GUARDAR REGISTROS-----------------------------------
-GuardarRegs proc near
-		mov ax_, AX
-		mov bx_, BX
-		mov cx_, CX
-		mov dx_, DX
-		ret
-GuardarRegs endp
-;-------------------------------------CARGAR REGISTROS GUARDADOS-----------------------------------
-CargarRegs proc near
-		mov ax, ax_
-		mov bx, bx_
-		mov cx, cx_
-		mov dx, dx_
-		ret
-CargarRegs endp
+
 ;-------------------------------------LIMPIAR REGISTROS-----------------------------------
 LimpiarRegs proc near
 		xor ax, ax
@@ -145,8 +188,10 @@ RET
 CopiarStrings endp
 ;-------------------------------------MULTIPLICAION DE CADENAS-----------------------------------
 Multiplicar proc near
-	MOV R1,0
-	MOV R2,0
+	MOV AUX1, 0
+	MOV ULTCONT, 0
+	MOV R1, 0
+	MOV R2, 0
 	MOV CONT , 0h
 	MOV CONT2 , 0h
 	MOV CONT , 0h
@@ -156,7 +201,7 @@ Multiplicar proc near
 	MOV R1, SI
 	DEC R1
 FINM1:
-	XOR BL, BL 
+	XOR Bx, Bx 
 	MOV BL , [DI]
 	INC R2
 	INC CONT
@@ -361,7 +406,6 @@ CSTR1:
 	INC SI
 	CMP AX, 0
 	JNE CSTR1
-	
 CSTR2:
 	XOR AX, AX
 	POP AX
@@ -376,12 +420,22 @@ CSTR2:
 ConvertStrings endp
 ;-------------------------------------OBTENER EL MÓDULO 16 DE UNA CADENA-----------------------------------
 METMOD proc near
-	
+	MOV numMod,  0h
+	MOV contMod , 4
 	XOR AX, AX
+MOD0:	
+	INC DI
+	MOV AL, [DI]
+	
+	CMP AL, 24h
+	JNE MOD0
+	
+	DEC DI
+	
 	MOV AL, [DI]
 	SUB AX, 30H 
 	MOV numMod, AX
-	CMP AX, 6h
+	CMP AX, 5h
 	JB MOD1
 	SUB AX, 4H 
 	MOV numMod, AX
@@ -394,7 +448,7 @@ MOD1:
 	MUL BX
 	MOV numMod, AX
 	XOR AX, AX
-	INC DI
+	DEC DI
 	MOV Al, [DI]
 	SUB AX, 30H
 	ADD numMod, Ax
@@ -407,12 +461,13 @@ MOD1:
 	MOV BX, 16
 	DIV BX
 	ADD DX, 30H
-	
+	MOV modulito, DX
 RET
 METMOD endp
 ;-------------------------------------IMPRIMIR VALORES-----------------------------------
 IMPRIMIR proc NEAR
 ;IMPRIME DX
+MOV DX, modulito
 	CMP contImpri, 8
 	JE GUION
 	CMP contImpri, 13
@@ -423,48 +478,56 @@ IMPRIMIR proc NEAR
 	JE GUION
 	CMP contImpri, 14
 	JE UNO
+	CMP contImpri, 19
+	JE ESPECIAL
 	JMP VALN
 GUION:
-	XOR AX, AX
-	MOV AX, DX
+	XOR BX, BX
+	MOV BX, DX
 	XOR DX, DX
 	MOV DX, 45
 	mov ah, 02h
 	int 21h
 	INC contImpri
 	
-	XOR DX, DX
-	MOV DX, AX
-	CALL VALHEX
-	mov ah, 02h
-	int 21h
-	inc contImpri
-	JMP NADA
+	
+	MOV DX, BX
+	CMP contImpri, 14
+	JE UNO
+	CMP contImpri, 19
+	JE ESPECIAL
+	JMP VALN
 UNO:
 	XOR DX, DX
 	MOV DX, 49
 	mov ah, 02h
 	int 21h
 	INC contImpri
-	JMP NADA
+	JMP NADAS
 ESPECIAL:
+	
 	XOR AX, AX
-	MOV AX, DX
+	XOR DX, DX
+	MOV AX, modulito
 	XOR BX, BX
 	MOV BX, 4
 	DIV BX
 	ADD DX, 8
 	ADD DX, 30h
+	MOV modulito, DX
 	CALL VALHEX
+	
 	mov ah, 02h
 	int 21h
-	JMP NADA
+	INC contImpri
+	JMP NADAS
 VALN:
+	MOV DX, modulito
 	CALL VALHEX
 	mov ah, 02h
 	int 21h
 	inc contImpri
-NADA:
+NADAS:
 	
 RET
 IMPRIMIR endp
@@ -473,21 +536,24 @@ IMPRIMIR endp
 ;------------------------------------- CAMBIA DE VALOR A HEXADECIMAL----------------------------------
 VALHEX proc NEAR
 	;CAMBIA EL VALOR DE DX 
-	CMP DX, 40h
+	XOR DX, DX
+	MOV DX, modulito
+	
+	CMP DX, 3AH
 	JE valA
-	CMP DX, 41h
+	CMP DX, 3Bh
 	JE valB
-	CMP DX, 42h
+	CMP DX, 3Ch
 	JE valC
-	CMP DX, 43h
+	CMP DX, 3Dh
 	JE valD
-	CMP DX, 44h
+	CMP DX, 3Eh
 	JE valE
-	CMP DX, 45h
+	CMP DX, 3Fh
 	JE valF
 	JMP valSale
 valA:
-XOR DX, DX
+	XOR DX, DX
 	MOV DX, 65
 	JMP valSale
 valB:
@@ -495,7 +561,7 @@ XOR DX, DX
 	MOV DX, 66
 	JMP valSale
 valC:
-XOR DX, DX
+	XOR DX, DX
 	MOV DX, 67
 	JMP valSale
 valD:
@@ -520,7 +586,7 @@ GENUUID proc NEAR
 	mov contImpri, 0h
 	mov ah, 2Ah
 	int 21h
-	MOV AÑO, CX
+	MOV ANIO, CX
 	MOV MES, DH
 	MOV DIA, DL
 	XOR CX, CX
@@ -531,14 +597,14 @@ GENUUID proc NEAR
 	MOV MIN, CL
 	MOV SEGS, DH
 	MOV CENTISEG, DL
-	SUB AÑO, 2020
+	SUB ANIO, 2020
+	MOV CONTDIAS, 0h
 SALTO:
-	CMP AÑO, 0
+	CMP ANIO, 0
 	JE SALTO2
 	ADD CONTDIAS , 365
+	DEC ANIO
 	JMP SALTO
-	
-	
 SALTO2:
 	CMP MES, 1
 	JE SALTO3
@@ -552,16 +618,18 @@ SALTO2:
 	JE MAYO
 	CMP MES, 6
 	JE JUNIO
-	CMP MES, 8
+	CMP MES, 7
 	JE JULIO
-	CMP MES, 9
+	CMP MES, 8
 	JE AGOSTO
-	CMP MES, 10
+	CMP MES, 9
 	JE SEPTIEMBRE
-	CMP MES, 11
+	CMP MES, 10
 	JE OCTUBRE
-	CMP MES, 12
+	CMP MES, 11
 	JE NOVIEMBRE
+	CMP MES, 12
+	JE DICIEMBRE
 FEBRERO:
 	ADD CONTDIAS, 31
 	JMP SALTO3
@@ -592,9 +660,13 @@ OCTUBRE:
 NOVIEMBRE:
 	ADD CONTDIAS, 304
 	JMP SALTO3
+DICIEMBRE:
+	ADD CONTDIAS, 334
+	JMP SALTO3
 SALTO3:
+	XOR AX, AX
 	MOV AL, DIA
-	ADD CONTDIAS , AL
+	ADD CONTDIAS , AX
 	SUB CONTDIAS, 1
 	
 	XOR SI, SI
@@ -604,54 +676,55 @@ SALTO3:
 	XOR AX, AX
 	MOV AX, CONTDIAS
 	CALL ConvertStrings ;EL NUMERO QUE ESTÁ EN AX A SI
-	
 	CALL LimpiarRegs
-	MOV DI, CONTDIASSTR
-	MOV SI, MUL1
+	LEA DI, CONTDIASSTR
+	LEA SI, MUL1
 	CALL CopiarStrings
 	CALL LimpiarRegs
 	CALL Multiplicar ;RESULTADO EN CADRESUL
 	mov CENSEGXD, 0h
 	MOV SEGCON, 0h
+	
 SALTO4:
-	CMP HORAS, 0
+	CMP HORA, 0
 	JE SALTO5
 	ADD SEGCON, 360
-	DEC HORAS
-	JMP SALT04
+	DEC HORA
+	JMP SALTO4
 SALTO5:
 	CMP MIN , 0
 	JE SALTO6
 	ADD SEGCON, 6
 	DEC MIN
-	JMP SALT05
+	JMP SALTO5
 SALTO6:
 	CMP SEGS , 0
 	JE SALTO7
 	ADD CENSEGXD, 100
 	DEC SEGS
-	JMP SALT06
+	JMP SALTO6
 SALTO7:
+
 	XOR AX, AX
-	MOV AX, CENTISEG
-	ADD CENSEGXD, AX 
+	MOV AL, CENTISEG
+	ADD CENSEGXD, AL 
 	
 	CALL LimpiarRegs
 	LEA SI, CENSEGXDstr
 	LEA DI, CENSEGXDstr
 	XOR AX, AX
-	MOV AX, CENSEGXD
+	MOV AL, CENSEGXD
 	CALL ConvertStrings 
 	CALL LimpiarRegs
+;TUTTO BENNE
 	LEA SI, SEGCONstr
 	LEA DI, SEGCONstr
 	XOR AX, AX
 	MOV AX, SEGCON
 	CALL ConvertStrings 
-	
-
 	CALL LimpiarRegs
-	LEA DI SEGCONstr
+	
+	LEA DI, SEGCONstr
 	MOV AL, 24h
 ADD0S1:
 	INC DI
@@ -669,64 +742,81 @@ ADD0S2:
 	XOR AX, AX
 	MOV AX, 24h
 	MOV [DI], AX
+	
+	
+	
+	
 	CALL LimpiarRegs
-	XOR DI, DI
-	XOR SI, SI
+	
+	
 	LEA SI, SEGCONstr
 	LEA DI, CADRESUL
 	CALL Sumar
 	
+	
 	CALL LimpiarRegs
-	XOR DI, DI
-	XOR SI, SI
+
 	LEA SI, CENSEGXDstr
 	LEA DI, CADRESUL
 	CALL Sumar
 	
+	
+	
 	CALL LimpiarRegs
-	XOR DI, DI
-	XOR SI, SI
+
 	LEA SI, DEFAULT
 	LEA DI, CADRESUL
 	CALL Sumar
 	
+	
 	CALL LimpiarRegs
 	LEA DI, MUL2
-	MOV AX, 57
+	MOV AX, 48
 	MOV [DI], AX
 	INC DI
+	XOR AX, AX
+	MOV AX, 49
 	MOV [DI], AX
 	INC DI
 	XOR AX, AX 
-	MOV AX, 55
+	MOV AX, 51
 	MOV [DI], AX
 	INC DI
 	XOR AX, AX 
 	MOV AX, 24H
 	MOV [DI], AX
-	MOV CX, 31
+	
 SALTO8:
 	CALL LimpiarRegs
-	XOR DI, DI
 	LEA DI, CADRESUL
+	MOV numMod, 0h
+	MOV modulito, 0h
+
+	
 	CALL METMOD
 	CALL IMPRIMIR
 	CALL LimpiarRegs
-	XOR DI, DI
-	XOR SI, SI
 	LEA DI, CADRESUL
 	LEA SI, MUL1
+	CALL CopiarStrings
+	CALL LimpiarRegs
 	CALL Multiplicar
-	
 	CALL LimpiarRegs
 	LEA SI, CADRESUL
 	LEA DI, B
-	CALL PROCESUMA
-	LOOP SALTO8
+	CALL SUMAR
+	
+	CMP contImpri, 35
+	JB salto8
+	
+	;salto de linea
+	MOV DL, 0Ah
+	MOV AH, 02h
+	int 21h
+	;salto de linea
+	MOV DL, 0Ah
+	MOV AH, 02h
+	int 21h
 RET
 GENUUID ENDP
-
-
-END programa	
-	
-
+END programa
