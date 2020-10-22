@@ -53,8 +53,80 @@ programa:
 	mov ds, ax
 ;-------------------------------------------MENU-------------------------------------
 MENU:
+	;imprimir
+	mov dx, offset textoMen
+	mov ah, 09h
+	int 21h
+;imprimir
+	mov dx, offset OpcionesMen
+	mov ah, 09h
+	int 21h
+	
+;leer opción
+	mov ah, 01h    
+	int 21h	
+	MOV BL, AL 
+	;salto de linea
+	MOV DL, 0Ah
+	MOV AH, 02h
+	int 21h
+	MOV AL , BL
+;opcion 1
+	MOV Dl, 49
+    CMP Al, Dl
+	JE OPCION1
+;opcion 2	
+	MOV Dl, 50
+    CMP Al, Dl
+	JE OPCION2
+;opcion 3
+	MOV Dl, 51
+    CMP Al, Dl
+	JE OPCION3
+;opcion 4	
+	MOV Dl, 52
+    CMP Al, Dl
+	JE OPCION4
+;opcion incorrecta del menu	
+	mov dx, offset ErrorMensaje
+	mov ah, 09h
+	int 21h
+	JMP MENU
+	
+;------------------------------------------OPCION1-----------------------------------
+OPCION1:
 	CALL GENUUID
-	JMP FIN
+;opcion  terminada	
+	JMP MENU
+;------------------------------------------OPCION2-----------------------------------
+OPCION2:
+	MOV CantUUID, ?
+OP21:
+	CALL GENUUID
+	DEC CantUUID
+	CMP CantUUID , 0h
+;opcion  terminada	
+	JMP MENU
+;------------------------------------------OPCION3-----------------------------------
+OPCION3:
+;PENDIENTE
+	JMP MENU
+;------------------------------------------OPCION4-----------------------------------
+OPCION4:
+	mov dx, offset FinMensaje
+	mov ah, 09h
+	int 21h
+	jmp FIN
+
+
+
+
+
+
+
+
+
+
 FIN:	
 	;finalizar programa
 	mov ah, 4ch
@@ -337,10 +409,19 @@ METMOD proc near
 	MOV numMod,  0h
 	MOV contMod , 4
 	XOR AX, AX
+MOD0:	
+	INC DI
+	MOV AL, [DI]
+	
+	CMP AL, 24h
+	JNE MOD0
+	
+	DEC DI
+	
 	MOV AL, [DI]
 	SUB AX, 30H 
 	MOV numMod, AX
-	CMP AX, 6h
+	CMP AX, 5h
 	JB MOD1
 	SUB AX, 4H 
 	MOV numMod, AX
@@ -353,7 +434,7 @@ MOD1:
 	MUL BX
 	MOV numMod, AX
 	XOR AX, AX
-	INC DI
+	DEC DI
 	MOV Al, [DI]
 	SUB AX, 30H
 	ADD numMod, Ax
@@ -644,13 +725,7 @@ ADD0S2:
 	MOV [DI], AX
 	
 	
-	mov dx, offset CADRESUL
-	mov ah, 09h
-	int 21h
-	;salto de linea
-	MOV DL, 0Ah
-	MOV AH, 02h
-	int 21h
+	
 	
 	CALL LimpiarRegs
 	
@@ -659,13 +734,6 @@ ADD0S2:
 	LEA DI, CADRESUL
 	CALL Sumar
 	
-	mov dx, offset CADRESUL
-	mov ah, 09h
-	int 21h
-	;salto de linea
-	MOV DL, 0Ah
-	MOV AH, 02h
-	int 21h
 	
 	CALL LimpiarRegs
 
@@ -673,26 +741,14 @@ ADD0S2:
 	LEA DI, CADRESUL
 	CALL Sumar
 	
-	mov dx, offset CADRESUL
-	mov ah, 09h
-	int 21h
-	;salto de linea
-	MOV DL, 0Ah
-	MOV AH, 02h
-	int 21h
+	
 	
 	CALL LimpiarRegs
 
 	LEA SI, DEFAULT
 	LEA DI, CADRESUL
 	CALL Sumar
-	mov dx, offset CADRESUL
-	mov ah, 09h
-	int 21h
-	;salto de linea
-	MOV DL, 0Ah
-	MOV AH, 02h
-	int 21h
+	
 	
 	CALL LimpiarRegs
 	LEA DI, MUL2
@@ -734,6 +790,14 @@ SALTO8:
 	CMP contImpri, 35
 	JB salto8
 	
+	;salto de linea
+	MOV DL, 0Ah
+	MOV AH, 02h
+	int 21h
+	;salto de linea
+	MOV DL, 0Ah
+	MOV AH, 02h
+	int 21h
 RET
 GENUUID ENDP
 
