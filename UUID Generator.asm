@@ -812,7 +812,7 @@ SALTO8:
 	LEA DI, B
 	CALL SUMAR
 	
-	CMP contImpri, 35
+	CMP contImpri, 36
 	JB salto8
 	
 	;salto de linea

@@ -102,6 +102,7 @@ main:
 	XOR AX,AX 
 	
 	LEA SI,validaruiid ;indexar uuid para validar
+	
 	MOV CX,8 ;Comenzando a validar caracteres del uiid por grupos
 	PGP:
 	call Validar0a9yAaF
